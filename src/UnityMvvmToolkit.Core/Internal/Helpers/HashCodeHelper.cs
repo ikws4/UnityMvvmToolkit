@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityMvvmToolkit.Core.Interfaces;
 
@@ -6,6 +7,9 @@ namespace UnityMvvmToolkit.Core.Internal.Helpers
 {
     internal static class HashCodeHelper
     {
+        private static Dictionary<(int, int), int> s_CombinedHashCodes = new Dictionary<(int, int), int>();
+        private static int s_StaticHashCodeId;
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetMemberHashCode(Type contextType, string memberName)
         {
@@ -88,11 +92,12 @@ namespace UnityMvvmToolkit.Core.Internal.Helpers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int CombineHashCode(int hash1, int hash2)
         {
-            var hash = 17;
-            hash = hash * 31 + hash1;
-            hash = hash * 31 + hash2;
-
-            return hash;
+            if (!s_CombinedHashCodes.TryGetValue((hash1, hash2), out var hashCode))
+            {
+                hashCode = s_StaticHashCodeId++;
+                s_CombinedHashCodes.Add((hash1, hash2), hashCode);
+            }
+            return hashCode;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
